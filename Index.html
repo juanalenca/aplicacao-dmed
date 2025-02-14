@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leitor de Arquivo DMED 2025</title>
+  <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+  <!-- Tela de upload -->
+  <div id="uploadContainer" class="container">
+    <h1>Leitor de Arquivo DMED 2025</h1>
+    <input type="file" id="fileInput" accept=".txt">
+    <button id="processButton">Processar Arquivo</button>
+    <div id="output"></div>
+  </div>
+
+  <!-- Tela de geração dos PDFs -->
+  <div id="pdfContainer" class="container" style="display:none;"></div>
+
+  <!-- jsPDF (via CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>

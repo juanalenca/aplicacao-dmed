@@ -1,0 +1,92 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Garante que o corpo ocupe toda a altura da tela */
+    flex-direction: column; /* Alinha os itens verticalmente */
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 90%; /* Ajusta a largura do container */
+    max-width: 1200px; /* Define uma largura máxima */
+    margin: 20px auto; /* Centraliza o container na página */
+    text-align: center; /* Centraliza o texto dentro do container */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px; /* Adiciona espaço abaixo do título */
+}
+
+input[type="file"] {
+    margin-bottom: 20px;
+    width: 100%; /* Faz o input ocupar toda a largura do container */
+    max-width: 300px; /* Define uma largura máxima para o input */
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px; /* Adiciona espaço abaixo do botão */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: auto; /* Ajusta o tamanho das colunas ao conteúdo */
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    white-space: nowrap; /* Evita quebra de texto */
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Estilo para o botão de download */
+#output button {
+    background-color: #28a745;
+    margin-top: 20px;
+}
+
+#output button:hover {
+    background-color: #218838;
+}

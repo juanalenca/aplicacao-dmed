@@ -1,0 +1,27 @@
+<Imagem>
+
+
+
+DECLARAÇÃO
+
+       	Declaramos para fins de apresentação à Receita Federal do Brasil que a senhora  <Nome do Titular> portador do <CPF/MF Formato: 000.000.000-00>, é beneficiária titular do sistema Saúde Recife, CNPJ/MF nº05.244.336/0001-13, sediado à Avenida Manoel Borba nº488, Boa Vista, Recife, Pernambuco CEP 50.070-000.  E pagou no ano de <Ano atual>, a título de contribuição ao sistema de saúde, à importância de <Valor Total (valor-Titular+Valores-Beneficiários) | Formato: R$ 0000,00>.                            	
+
+<Nome do Titular>                    <Valor-Titular | Formato: R$ 0000,00>.     
+
+<Nome do Beneficiário>                                        <Valor-Beneficiário1 | Formato: R$ 0000,00>. 
+<cpf-beneficiário1 | Formato: 000.000.000-00>
+
+<Nome do Beneficiário>                                        <Valor-Beneficiário2 | Formato: R$ 0000,00>. 
+<cpf-beneficiário2 | Formato: 000.000.000-00>
+
+
+
+                                                                 Recife, <data-atual> de Março de 2025
+
+
+
+
+
+
+
+Setor de Adesão e Exclusão

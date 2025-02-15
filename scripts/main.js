@@ -28,6 +28,17 @@ document.addEventListener("DOMContentLoaded", function() {
   
   const processButton = document.getElementById("processButton");
   processButton.addEventListener("click", processFile);
+
+  // Atualiza o nome do arquivo selecionado
+  const fileInput = document.getElementById("fileInput");
+  fileInput.addEventListener("change", function() {
+    const fileNameSpan = document.getElementById("fileName");
+    if (fileInput.files.length > 0) {
+      fileNameSpan.textContent = fileInput.files[0].name;
+    } else {
+      fileNameSpan.textContent = "Clique para selecionar um arquivo";
+    }
+  });
 });
 
 // Processa o arquivo DMED (dmed.txt)
@@ -134,51 +145,174 @@ function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+/**
+ * Desenha um parágrafo justificado no PDF.
+ * @param {Object} doc - Instância do jsPDF.
+ * @param {string} text - Texto do parágrafo.
+ * @param {number} x - Posição x de início.
+ * @param {number} y - Posição y de início.
+ * @param {number} maxWidth - Largura máxima da área de texto.
+ * @param {number} lineHeight - Altura da linha (em cm).
+ * @param {number} firstLineIndent - Indentação da primeira linha (em cm).
+ * @returns {number} - Número de linhas desenhadas.
+ */
+function drawJustifiedParagraph(doc, text, x, y, maxWidth, lineHeight, firstLineIndent = 0) {
+  let words = text.split(/\s+/);
+  let lines = [];
+  let currentLine = [];
+  let currentLineWidth = 0;
+  let spaceWidth = doc.getTextWidth(" ");
+
+  words.forEach(word => {
+    let wordWidth = doc.getTextWidth(word);
+    let additionalWidth = currentLine.length === 0 ? (lines.length === 0 ? firstLineIndent : 0) : spaceWidth;
+    if (currentLineWidth + additionalWidth + wordWidth <= maxWidth) {
+      currentLine.push(word);
+      currentLineWidth += additionalWidth + wordWidth;
+    } else {
+      lines.push(currentLine);
+      currentLine = [word];
+      currentLineWidth = wordWidth;
+    }
+  });
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    let lineWords = lines[i];
+    let isLastLine = (i === lines.length - 1);
+    let indent = i === 0 ? firstLineIndent : 0;
+    let wordsWidth = lineWords.reduce((acc, word) => acc + doc.getTextWidth(word), 0);
+    let gaps = lineWords.length - 1;
+    let extraSpace = 0;
+    if (!isLastLine && gaps > 0) {
+      extraSpace = (maxWidth - indent - wordsWidth) / gaps;
+    } else {
+      extraSpace = spaceWidth;
+    }
+    let currentX = x + indent;
+    lineWords.forEach((word, j) => {
+      doc.text(word, currentX, y);
+      currentX += doc.getTextWidth(word);
+      if (j < lineWords.length - 1) {
+        currentX += extraSpace;
+      }
+    });
+    y += lineHeight;
+  }
+  return lines.length;
+}
+
+/* Gera o PDF para cada titular conforme o template solicitado */
+function generatePDF(titular) {
+  if (!imgData) {
+    alert("Imagem não carregada ainda. Tente novamente.");
+    return;
+  }
+  
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF({
+    orientation: "portrait",
+    unit: "cm",
+    format: "a4"
+  });
+
+  // Insere a imagem no topo: ocupa toda a largura (21cm) e tem 3,88cm de altura
+  doc.addImage(imgData, 'PNG', 0, 0, 21, 3.88);
+
+  // Posição inicial após a imagem
+  let y = 3.88 + 1.5;
+  // Título centralizado "DECLARAÇÃO"
+  doc.setFontSize(16);
+  doc.text("DECLARAÇÃO", 10.5, y, { align: "center" });
+  y += 1;
+
+  // Parágrafo com os dados do titular justificado (com indentação na primeira linha)
+  doc.setFontSize(12);
+  let paragraph = `Declaramos para fins de apresentação à Receita Federal do Brasil que a senhora ${titular.nome} portador do ${formatarCPF(titular.cpf)}, é beneficiária titular do sistema Saúde Recife, CNPJ/MF nº05.244.336/0001-13, sediado à Avenida Manoel Borba nº488, Boa Vista, Recife, Pernambuco CEP 50.070-000. E pagou no ano de 2025, a título de contribuição ao sistema de saúde, à importância de ${formatarMoeda(titular.total)}.`;
+  let firstLineIndent = 1;   // 1 cm de indentação na primeira linha
+  let maxWidth = 16.8;         // Largura disponível (considerando margens)
+  let lineHeight = 0.5;        // Altura de cada linha (em cm)
+  let linesCount = drawJustifiedParagraph(doc, paragraph, 2, y, maxWidth, lineHeight, firstLineIndent);
+  y += linesCount * lineHeight + 1.5;  // Atualiza y com o total de linhas e um gap adicional
+
+  // Linha com Nome do Titular (à esquerda) e Valor Titular (à direita)
+  doc.text(titular.nome, 2, y);
+  doc.text(formatarMoeda(titular.valor), 19, y, { align: "right" });
+  y += 1;
+  
+  // Dados dos dependentes (se houver)
+  if (titular.dependentes.length > 0) {
+    titular.dependentes.forEach(dep => {
+      doc.text(dep.nome, 2, y);
+      doc.text(formatarMoeda(dep.valor), 19, y, { align: "right" });
+      y += 0.7;
+      doc.text(formatarCPF(dep.cpf), 2, y);
+      y += 1;
+    });
+  }
+  
+  // Campo de data ("Recife, ...") abaixo dos dados
+  let dateY = y + 5;
+  let today = new Date();
+  let options = { day: 'numeric', month: 'long', year: 'numeric' };
+  let dateFormatted = today.toLocaleDateString('pt-BR', options);
+  let dateStr = `Recife, ${dateFormatted}`;
+  doc.text(dateStr, 19, dateY, { align: "right" });
+  
+  // "Setor de Adesão e Exclusão" centralizado mais abaixo
+  let setorY = dateY + 5;
+  doc.text("Setor de Adesão e Exclusão", 10.5, setorY, { align: "center" });
+  
+  // Salva o PDF com o nome baseado no CPF do titular
+  doc.save(`declaracao_${titular.cpf}.pdf`);
+}
+
 // Exibe uma mensagem de erro na tela
 function showError(message) {
   const output = document.getElementById('output');
-  output.innerHTML = `<div class="error-message">${message}</div>`;
+  output.innerHTML = `<div class="error-message text-red-500">${message}</div>`;
 }
 
-// Após o processamento, oculta a tela de upload e exibe a tela de pesquisa para geração dos PDFs
+// Após o processamento, exibe a tela de pesquisa para geração dos PDFs com design melhorado
 function displayData(titulares) {
   titularesData = titulares; // Armazena globalmente para pesquisa
   document.getElementById("uploadContainer").style.display = "none";
+  
   let pdfContainer = document.getElementById("pdfContainer");
   pdfContainer.style.display = "block";
-  pdfContainer.innerHTML = "<h2>Geração de PDFs</h2>";
+  pdfContainer.innerHTML = `
+    <div class="w-full max-w-md mx-auto bg-gray-800 p-6 rounded-xl shadow-lg">
+      <h2 class="text-2xl font-bold text-green-400 mb-4">📄 Geração de PDFs</h2>
+      <p class="text-gray-300 mb-4">Digite somente os números do CPF para buscar e gerar o PDF.</p>
+      <input type="text" id="searchCPF" placeholder="CPF do titular (somente números)" class="w-full p-3 rounded-lg bg-gray-900 border border-green-600 text-white mb-4">
+      <div id="results" class="mt-4"></div>
+    </div>
+  `;
   
-  // Campo de pesquisa para CPF
-  pdfContainer.innerHTML += '<input type="text" id="searchCPF" placeholder="Digite o CPF do titular" style="margin:10px; padding: 8px; width: 300px; font-size: 1em;" />';
-  pdfContainer.innerHTML += '<div id="results" style="margin-top:20px;"></div>';
-  
-  // Event listener para busca
+  // Event listener para o campo de pesquisa
   document.getElementById("searchCPF").addEventListener("input", function(e) {
     filterTitulares(e.target.value);
   });
-  
-  // Mensagem inicial
-  document.getElementById("results").innerHTML = "<p>Digite o CPF do titular para buscar.</p>";
 }
 
-// Filtra os titulares com base no CPF digitado
 function filterTitulares(searchTerm) {
   const resultsDiv = document.getElementById("results");
   resultsDiv.innerHTML = ""; // Limpa os resultados
-  // Remove caracteres não numéricos para comparação
   const cleanedSearchTerm = searchTerm.replace(/\D/g, '');
   if (cleanedSearchTerm.length === 0) {
-    resultsDiv.innerHTML = "<p>Digite o CPF do titular para buscar.</p>";
+    // Se nada foi digitado, não exibe mensagem
     return;
   }
   const filtered = titularesData.filter(titular => titular.cpf.indexOf(cleanedSearchTerm) !== -1);
   if (filtered.length === 0) {
-    resultsDiv.innerHTML = "<p>Nenhum titular encontrado com esse CPF.</p>";
+    resultsDiv.innerHTML = "<p class='text-red-500'>CPF do titular não foi encontrado.</p>";
   } else {
     filtered.forEach(titular => {
       let btn = document.createElement("button");
       btn.textContent = `Gerar PDF para ${titular.nome} (${formatarCPF(titular.cpf)})`;
-      btn.style.margin = "5px";
+      btn.className = "w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg mb-2 transition-all transform hover:scale-105";
       btn.addEventListener("click", function(){
         generatePDF(titular);
       });
@@ -186,72 +320,3 @@ function filterTitulares(searchTerm) {
     });
   }
 }
-
-// Gera o PDF para cada titular conforme o template solicitado
-function generatePDF(titular) {
-    if (!imgData) {
-      alert("Imagem não carregada ainda. Tente novamente.");
-      return;
-    }
-    
-    // Cria uma instância do jsPDF em formato A4 com unidade em centímetros
-    const { jsPDF } = window.jspdf;
-    let doc = new jsPDF({
-      orientation: "portrait",
-      unit: "cm",
-      format: "a4"
-    });
-  
-    // Insere a imagem no topo: ocupa toda a largura (21cm) e tem 3,88cm de altura
-    doc.addImage(imgData, 'PNG', 0, 0, 21, 3.88);
-  
-    // Posição inicial após a imagem
-    let y = 3.88 + 1; // ajuste se necessário
-  
-    // Título centralizado "DECLARAÇÃO"
-    doc.setFontSize(16);
-    doc.text("DECLARAÇÃO", 10.5, y, { align: "center" });
-    y += 1;
-  
-    // Parágrafo com os dados do titular justificado à esquerda
-    doc.setFontSize(12);
-    let paragraph = `Declaramos para fins de apresentação à Receita Federal do Brasil que a senhora ${titular.nome} portador do ${formatarCPF(titular.cpf)}, é beneficiária titular do sistema Saúde Recife, CNPJ/MF nº05.244.336/0001-13, sediado à Avenida Manoel Borba nº488, Boa Vista, Recife, Pernambuco CEP 50.070-000. E pagou no ano de 2025, a título de contribuição ao sistema de saúde, à importância de ${formatarMoeda(titular.total)}.`;
-    let textLines = doc.splitTextToSize(paragraph, 19);
-    doc.text(textLines, 2, y, { align: "left" });
-    y += textLines.length * 0.5 + 0.5;
-  
-    // Linha com Nome do Titular (à esquerda) e Valor Titular (à direita)
-    doc.text(titular.nome, 2, y);
-    doc.text(formatarMoeda(titular.valor), 19, y, { align: "right" });
-    y += 1;
-  
-    // Dados dos dependentes (se houver)
-    if (titular.dependentes.length > 0) {
-      titular.dependentes.forEach(dep => {
-        doc.text(dep.nome, 2, y);
-        doc.text(formatarMoeda(dep.valor), 19, y, { align: "right" });
-        y += 0.7;
-        doc.text(formatarCPF(dep.cpf), 2, y);
-        y += 1;
-      });
-    }
-  
-    // Posiciona o campo de data ("Recife, ...") logo abaixo dos dados dos dependentes,
-    // com um gap de 0,5 cm e alinhado à direita.
-    let dateY = y + 5;
-    // Obtém a data atual de acordo com as configurações do sistema
-    let today = new Date();
-    let options = { day: 'numeric', month: 'long', year: 'numeric' };
-    let dateFormatted = today.toLocaleDateString('pt-BR', options);
-    let dateStr = `Recife, ${dateFormatted}`;
-    doc.text(dateStr, 19, dateY, { align: "right" });
-  
-    // Posiciona "Setor de Adesão e Exclusão" mais abaixo no documento, centralizado.
-    let setorY = dateY + 10; // Aumentado o espaçamento para posicionar mais abaixo
-    doc.text("Setor de Adesão e Exclusão", 10.5, setorY, { align: "center" });
-  
-    // Salva o PDF (o nome inclui o CPF do titular para diferenciar)
-    doc.save(`declaracao_${titular.cpf}.pdf`);
-  }
-  
-  

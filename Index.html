@@ -4,22 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leitor de Arquivo DMED 2025</title>
-  <link rel="stylesheet" href="styles/styles.css">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <!-- Tela de upload -->
-  <div id="uploadContainer" class="container">
-    <h1>Leitor de Arquivo DMED 2025</h1>
-    <input type="file" id="fileInput" accept=".txt">
-    <button id="processButton">Processar Arquivo</button>
-    <div id="output"></div>
+<body class="bg-gray-950 text-green-400 flex flex-col items-center justify-center min-h-screen p-4 space-y-6">
+
+  <!-- Tela de Upload -->
+  <div id="uploadContainer" class="bg-gray-900 p-8 rounded-xl shadow-2xl text-center w-full max-w-md transition-all duration-300">
+    <h1 class="text-2xl font-bold mb-6 text-green-400">📂 Leitor de Arquivo DMED 2025</h1>
+
+    <!-- Input de Arquivo -->
+    <label for="fileInput" id="fileLabel" class="cursor-pointer block border-2 border-green-600 border-dashed p-6 rounded-lg transition hover:bg-gray-800 hover:border-green-400">
+      <span id="fileName" class="text-gray-300">Clique para selecionar um arquivo</span>
+      <input type="file" id="fileInput" accept=".txt" class="hidden">
+    </label>
+
+    <!-- Botão de Processar -->
+    <button id="processButton" class="mt-4 bg-green-700 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg w-full transition-all transform hover:scale-105">
+      🚀 Processar Arquivo
+    </button>
+
+    <!-- Mensagem de saída -->
+    <div id="output" class="mt-4 text-gray-300 text-sm"></div>
   </div>
 
-  <!-- Tela de geração dos PDFs -->
-  <div id="pdfContainer" class="container" style="display:none;"></div>
+  <!-- Tela de Geração de PDFs -->
+  <div id="pdfContainer" class="hidden"></div>
 
   <!-- jsPDF (via CDN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="scripts/main.js"></script>
+
 </body>
 </html>

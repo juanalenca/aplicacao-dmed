@@ -21,10 +21,10 @@ Este projeto é uma aplicação web desenvolvida em JavaScript que processa arqu
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu-usuario/nome-do-repositorio.git
+https://github.com/juanalenca/aplicacao-dmed.git
 ```
 
-2. Abra o arquivo `index.html` em um navegador moderno (Chrome, Firefox, Edge).
+2. Abra o arquivo `index.html` no navegador.
 
 3. Clique para selecionar um arquivo `.txt` no formato DMED.
 

@@ -222,11 +222,11 @@ function generatePDF(titular) {
   doc.addImage(imgData, 'PNG', 0, 0, 21, 3.88);
 
   // Posição inicial após a imagem
-  let y = 3.88 + 1.5;
+  let y = 3.88 + 1.9;
   // Título centralizado "DECLARAÇÃO"
   doc.setFontSize(16);
   doc.text("DECLARAÇÃO", 10.5, y, { align: "center" });
-  y += 1;
+  y += 2;
 
   // Parágrafo com os dados do titular justificado (com indentação na primeira linha)
   doc.setFontSize(12);
@@ -253,21 +253,29 @@ function generatePDF(titular) {
     });
   }
   
-  // Campo de data ("Recife, ...") abaixo dos dados
-  let dateY = y + 5;
+  // ----------------------------
+  // Posições fixas para os campos:
+  // ----------------------------
+  
+  // Define a posição fixa (em cm) para o campo de data
+  const fixedDateY = 25;  // Exemplo: 25cm do topo
+  // Define a posição fixa para o "Setor de Adesão e Exclusão"
+  const fixedSetorY = 28; // Exemplo: 28cm do topo
+
+  // Campo de data ("Recife, ...") com posição fixa
   let today = new Date();
   let options = { day: 'numeric', month: 'long', year: 'numeric' };
   let dateFormatted = today.toLocaleDateString('pt-BR', options);
   let dateStr = `Recife, ${dateFormatted}`;
-  doc.text(dateStr, 19, dateY, { align: "right" });
+  doc.text(dateStr, 19, fixedDateY, { align: "right" });
   
-  // "Setor de Adesão e Exclusão" centralizado mais abaixo
-  let setorY = dateY + 5;
-  doc.text("Setor de Adesão e Exclusão", 10.5, setorY, { align: "center" });
+  // "Setor de Adesão e Exclusão" centralizado com posição fixa
+  doc.text("Setor de Adesão e Exclusão", 10.5, fixedSetorY, { align: "center" });
   
   // Salva o PDF com o nome baseado no CPF do titular
   doc.save(`declaracao_${titular.cpf}.pdf`);
 }
+
 
 // Exibe uma mensagem de erro na tela
 function showError(message) {
